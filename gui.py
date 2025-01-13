@@ -51,6 +51,22 @@ class FireSimulationGUI:
         self.canvas = tk.Canvas(self.master, width=650, height=650)
         self.canvas.grid(row=4, column=0, columnspan=2)
 
+        # Labels for cell status and fire percentage
+        self.tree_label = tk.Label(self.master, text="Trees: 0")
+        self.tree_label.grid(row=5, column=0)
+
+        self.fire_label = tk.Label(self.master, text="Fire: 0")
+        self.fire_label.grid(row=5, column=1)
+
+        self.empty_label = tk.Label(self.master, text="Empty: 0")
+        self.empty_label.grid(row=6, column=0)
+
+        self.burnt_label = tk.Label(self.master, text="Burnt: 0")
+        self.burnt_label.grid(row=6, column=1)
+
+        self.fire_percentage_label = tk.Label(self.master, text="Fire Percentage: 0%")
+        self.fire_percentage_label.grid(row=7, column=0, columnspan=2)
+
         self.grid = None
         self.simulation = None
         self.env = None
@@ -110,8 +126,36 @@ class FireSimulationGUI:
                 cell.state = "D"  # Change to tree state
             self.draw_grid()  # Redraw the grid after the change
 
+    def update_cell_status(self):
+        tree_count = 0
+        fire_count = 0
+        empty_count = 0
+        burnt_count = 0
+
+        for i in range(self.grid.size):
+            for j in range(self.grid.size):
+                cell = self.grid.grid[i][j]
+                if cell.state == "D":
+                    tree_count += 1
+                elif cell.state == "G":
+                    fire_count += 1
+                elif cell.state == "O":
+                    empty_count += 1
+                elif cell.state == "B":
+                    burnt_count += 1  # Assuming "B" for burnt cells
+
+        # Ažuriraj label-e sa novim brojevima
+        total_cells = self.grid.size * self.grid.size
+        fire_percentage = (fire_count / total_cells) * 100
+
+        self.tree_label.config(text=f"Trees: {tree_count}")
+        self.fire_label.config(text=f"Fire: {fire_count}")
+        self.empty_label.config(text=f"Empty: {empty_count}")
+        self.burnt_label.config(text=f"Burnt: {burnt_count}")
+        self.fire_percentage_label.config(text=f"Fire Percentage: {fire_percentage:.2f}%")
+
     def start_simulation(self):
-        max_steps = 200
+        max_steps = 250
         visualization_interval = 5  # Visualize every 5 steps
 
         # Start the simulation
@@ -123,6 +167,10 @@ class FireSimulationGUI:
                 yield self.env.process(self.simulation.spread_fire())
                 yield self.env.process(self.simulation.update_temperature())
 
+                # Ažuriraj stanje ćelija i procente
+                self.update_cell_status()
+
+                # Prikazuj svakih visualization_interval koraka
                 if step % visualization_interval == 0:
                     self.visualizer.visualize(step)
 

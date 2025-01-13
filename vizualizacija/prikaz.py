@@ -11,6 +11,7 @@ class Visualizer:
     def visualize(self, step):
         """
         Vizualizacija trenutnog stanja mreže pomoću Matplotlib.
+        Dodali smo boje koje zavise od temperature ćelija.
         """
         color_map = {
             'D': 'green',  # Drvo
@@ -25,14 +26,18 @@ class Visualizer:
             for j in range(self.grid.size):
                 cell = self.grid.grid[i][j]
                 color = color_map.get(cell.state, 'white')
-                if color == 'green':  # Drvo
-                    grid_data[i, j] = [0, 1, 0]
-                elif color == 'red':  # Gori
-                    grid_data[i, j] = [1, 0, 0]
-                elif color == 'gray':  # Prazno
-                    grid_data[i, j] = [0.5, 0.5, 0.5]
-                elif color == 'black':  # Prepreka
-                    grid_data[i, j] = [0, 0, 0]
+
+                # Dodavanje temperaturnih varijacija u boji
+                if cell.state == 'G':  # Požar
+                    grid_data[i, j] = [1, 0, 0]  # Požar u crvenoj
+                elif cell.state == 'D':  # Drvo
+                    # Boja zavisi od temperature ćelije
+                    temp_ratio = min(cell.temperature / 100, 1)  # Normalizacija temperature
+                    grid_data[i, j] = [0, temp_ratio, 0]  # Zelena sa rastućim intenzitetom
+                elif cell.state == 'O':  # Prepreka
+                    grid_data[i, j] = [0, 0, 0]  # Crna za prepreke
+                else:
+                    grid_data[i, j] = [0.5, 0.5, 0.5]  # Prazna ćelija u sivoj
 
         if self.img is None:
             self.img = self.ax.imshow(grid_data)  # Prvi put kreiramo sliku
